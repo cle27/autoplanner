@@ -1,30 +1,38 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-  <title>Monthly Planner</title>
+  <title>Planning Mensuel</title>
 </head>
 <body>
 
   <div class="container mt-5">
-    <h1 class="mb-4">Monthly Planner</h1>
+    <h1 class="mb-4">Planning Mensuel</h1>
 
-    <!-- Form to input names and weeks off -->
+    <!-- Formulaire pour saisir les noms, les semaines de congé, la date initiale et le nombre de semaines -->
     <form id="plannerForm">
       <div class="form-group">
-        <label for="names">Enter Names (comma-separated):</label>
+        <label for="names">Saisissez les noms (séparés par des virgules) :</label>
         <input type="text" class="form-control" id="names" required>
       </div>
       <div class="form-group">
-        <label for="weeksOff">Enter Weeks Off (comma-separated):</label>
+        <label for="weeksOff">Saisissez les semaines de congé (séparées par des virgules) :</label>
         <input type="text" class="form-control" id="weeksOff" required>
       </div>
-      <button type="button" class="btn btn-primary" onclick="generatePlanner()">Generate Planner</button>
+      <div class="form-group">
+        <label for="initialDate">Saisissez la date initiale :</label>
+        <input type="date" class="form-control" id="initialDate" required>
+      </div>
+      <div class="form-group">
+        <label for="numberOfWeeks">Saisissez le nombre de semaines :</label>
+        <input type="number" class="form-control" id="numberOfWeeks" required>
+      </div>
+      <button type="button" class="btn btn-primary" onclick="generatePlanner()">Générer le Planning</button>
     </form>
 
-    <!-- Table to display the monthly planner -->
+    <!-- Tableau pour afficher le planning mensuel -->
     <div class="mt-4" id="plannerTable"></div>
   </div>
 

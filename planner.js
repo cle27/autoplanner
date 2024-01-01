@@ -1,91 +1,102 @@
 function generatePlanner() {
-  // Get input values
+  // Obtenez les valeurs d'entrée
   const namesInput = document.getElementById('names').value.trim();
   const weeksOffInput = document.getElementById('weeksOff').value.trim();
+  const initialDateInput = document.getElementById('initialDate').value;
+  const numberOfWeeksInput = document.getElementById('numberOfWeeks').value;
 
-  // Validate inputs
-  if (!namesInput || !weeksOffInput) {
-    alert('Please enter names and weeks off.');
+  // Validez les entrées
+  if (!namesInput || !weeksOffInput || !initialDateInput || !numberOfWeeksInput) {
+    alert('Veuillez remplir tous les champs.');
     return;
   }
 
-  // Split names and weeks off into arrays
+  // Convertissez la chaîne de date initiale en objet Date
+  const initialDate = new Date(initialDateInput);
+
+  // Séparez les noms et les semaines de congé en tableaux
   const names = namesInput.split(',').map(name => name.trim());
   const weeksOff = weeksOffInput.split(',').map(Number);
 
-  // Generate planner data
-  const plannerData = generatePlannerData(names, weeksOff);
+  // Générez les données du planning
+  const plannerData = generatePlannerData(names, weeksOff, initialDate, numberOfWeeksInput);
 
-  // Display planner table
+  // Affichez le tableau du planning
   displayPlannerTable(plannerData);
 }
 
-function generatePlannerData(names, weeksOff) {
-  // Combine names and weeks off into an array of objects
+function generatePlannerData(names, weeksOff, initialDate, numberOfWeeks) {
+  // Combinez les noms et les semaines de congé en un tableau d'objets
   const data = names.map(name => ({ name }));
 
-  // Shuffle the data using lodash to randomize names' positions
+  // Mélangez les données à l'aide de lodash pour randomiser les positions des noms
   const shuffledData = _.shuffle(data);
 
-  // Iterate through weeks off and remove corresponding names
+  // Parcourez les semaines de congé et supprimez les noms correspondants
   weeksOff.forEach(week => {
     const startIndex = (week - 1) * 3;
     const endIndex = startIndex + 3;
     shuffledData.splice(startIndex, 3);
   });
 
-  return shuffledData;
+  // Générez les données du calendrier pour le nombre spécifié de semaines
+  const calendarData = [];
+  for (let i = 0; i < numberOfWeeks; i++) {
+    const currentDate = new Date(initialDate.getTime() + i * 7 * 24 * 60 * 60 * 1000);
+    calendarData.push({
+      weekNumber: i + 1,
+      monday: currentDate.toLocaleDateString('fr-FR', { weekday: 'long', month: 'long', day: 'numeric' }),
+      tuesday: new Date(currentDate.getTime() + 1 * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR', { weekday: 'long', month: 'long', day: 'numeric' }),
+      wednesday: new Date(currentDate.getTime() + 2 * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR', { weekday: 'long', month: 'long', day: 'numeric' }),
+      thursday: new Date(currentDate.getTime() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR', { weekday: 'long', month: 'long', day: 'numeric' }),
+      friday: new Date(currentDate.getTime() + 4 * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR', { weekday: 'long', month: 'long', day: 'numeric' }),
+      saturday: new Date(currentDate.getTime() + 5 * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR', { weekday: 'long', month: 'long', day: 'numeric' }),
+      sunday: new Date(currentDate.getTime() + 6 * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR', { weekday: 'long', month: 'long', day: 'numeric' })
+    });
+  }
+
+  return { plannerData: shuffledData, calendarData };
 }
 
-function displayPlannerTable(plannerData) {
+function displayPlannerTable({ plannerData, calendarData }) {
   const tableContainer = document.getElementById('plannerTable');
 
-  // Clear previous table
+  // Effacez le tableau précédent
   tableContainer.innerHTML = '';
 
-  // Create and append table
+  // Créez et ajoutez le tableau
   const table = document.createElement('table');
   table.className = 'table table-bordered';
 
-  // Create table header
+  // Créez l'en-tête du tableau
   const thead = document.createElement('thead');
   const headerRow = document.createElement('tr');
-  headerRow.innerHTML = '<th scope="col">Week</th><th scope="col">Monday</th><th scope="col">Tuesday</th><th scope="col">Wednesday</th><th scope="col">Thursday</th><th scope="col">Friday</th><th scope="col">Saturday</th><th scope="col">Sunday</th>';
+  headerRow.innerHTML = '<th scope="col">Semaine</th><th scope="col">Lundi</th><th scope="col">Mardi</th><th scope="col">Mercredi</th><th scope="col">Jeudi</th><th scope="col">Vendredi</th><th scope="col">Samedi</th><th scope="col">Dimanche</th>';
   thead.appendChild(headerRow);
   table.appendChild(thead);
 
-  // Create table body
+  // Créez le corps du tableau
   const tbody = document.createElement('tbody');
-
-  // Get the first day of the year 2024 (Monday)
-  const firstDay = new Date(2024, 0, 1);
-  // Iterate through weeks
-  for (let weekNumber = 1; weekNumber <= 52; weekNumber++) {
+  for (let i = 0; i < calendarData.length; i++) {
     const row = document.createElement('tr');
-    // Week number in the first column
+
+    // Numéro de semaine dans la première colonne
     const weekCell = document.createElement('td');
-    if (weekNumber % 2 === 0) {
-      weekCell.textContent = weekNumber;
-    }
+    weekCell.textContent = calendarData[i].weekNumber;
     row.appendChild(weekCell);
 
-    // Populate cells for each day of the week
-    for (let day = 0; day < 7; day++) {
+    // Remplissez les cellules pour chaque jour de la semaine
+    const dayNames = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    for (const dayName of dayNames) {
       const cell = document.createElement('td');
-      const currentDate = new Date(firstDay.getTime() + (weekNumber - 1) * 7 * 24 * 60 * 60 * 1000 + day * 24 * 60 * 60 * 1000);
-      // Display date only for Mondays
-      if (day === 0) {
-        cell.textContent = currentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      }
+      cell.textContent = calendarData[i][dayName];
       row.appendChild(cell);
     }
 
     tbody.appendChild(row);
   }
-
   table.appendChild(tbody);
 
-  // Append table to the container
+  // Ajoutez le tableau au conteneur
   tableContainer.appendChild(table);
 }
-
