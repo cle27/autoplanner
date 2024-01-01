@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+  <title>Monthly Planner</title>
+</head>
+<body>
+
+  <div class="container mt-5">
+    <h1 class="mb-4">Monthly Planner</h1>
+
+    <!-- Form to input names and weeks off -->
+    <form id="plannerForm">
+      <div class="form-group">
+        <label for="names">Enter Names (comma-separated):</label>
+        <input type="text" class="form-control" id="names" required>
+      </div>
+      <div class="form-group">
+        <label for="weeksOff">Enter Weeks Off (comma-separated):</label>
+        <input type="text" class="form-control" id="weeksOff" required>
+      </div>
+      <button type="button" class="btn btn-primary" onclick="generatePlanner()">Generate Planner</button>
+    </form>
+
+    <!-- Table to display the monthly planner -->
+    <div class="mt-4" id="plannerTable"></div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+  <script src="planner.js"></script>
+
+</body>
+</html>
