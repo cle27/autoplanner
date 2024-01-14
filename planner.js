@@ -40,7 +40,7 @@ function generatePlannerData(names, nbDeGarde, initialDate, numberOfWeeks) {
   const dateOpt = {weekday: 'long', month: 'long', day: 'numeric'};
   for (let i = 0; i < 7 * numberOfWeeks; i++) {
       calendarData.push(new Date(initialDate.getTime() + i * 86400000).toLocaleDateString('fr-FR', dateOpt));
-    console.log(calendarData);
+      if (DEBUG_MODE) {console.log(calendarData);}
   }
 
   return calendarData;
