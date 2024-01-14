@@ -42,32 +42,54 @@ function displayPlannerTable(calendarData) {
   // Effacez le tableau précédent
   tableContainer.innerHTML = '';
 
-  // Créez et ajoutez le tableau
-  const table = document.createElement('table');
-  table.className = 'table table-bordered';
-
-  // Créez l'en-tête du tableau
-  const thead = document.createElement('thead');
-
-  //Header pour le mois
-  const headerRowMonth = document.createElement('tr');
-  headerRowMonth.innerHTML = `<th scope="col" colspan="7" style="text-align: center;">${calendarData[0].split(' ')[2]}</th>`;
-  thead.appendChild(headerRowMonth);
-
-  //Header pour les jours
-  const headerRowDay = document.createElement('tr');
-  for (let i = 0; i < 7 ; i++) {
-    headerRowDay.insertAdjacentHTML('beforeend', `<th scope="col" style="text-align: center;">${calendarData[i].split(' ')[0]}</th>`);
-  }
-  thead.appendChild(headerRowDay);
-
-  table.appendChild(thead);
-
   // Créez le corps du tableau
   const tbody = document.createElement('tbody');
+  let storedMonth = '';
+
+  // Set this as global variable
+  let isNewMonth = false;
+
   for (let i = 0; i < calendarData.length; i++) {
+    // Evaluate when there is a new month
+    let currentMonth = calendarData[i].split(' ')[2];
+    
+    if (i % 7 === 0) { //Reinit isNewMonth after 7 days 
+      isNewMonth = false;
+    }
+
+    // If we are in a new month, save its new value.
+    if (i === 0 || currentMonth !== storedMonth) {
+      storedMonth = currentMonth;
+      isNewMonth = true;
+    }
+
+    if (calendarData[i].split(' ')[0] === 'dimanche' && isNewMonth) { // Create a new table every sunday of each new month
+      // Close the previous table and add it to the container
+      if (i !== 0) {
+        const table = document.createElement('table');
+        table.className = 'table table-bordered';
+        table.appendChild(tbody.cloneNode(true)); // Clone the tbody to avoid moving nodes
+        tableContainer.appendChild(table);
+      }
+
+      // Create a new tbody for the next table
+      tbody.innerHTML = '';
+
+      // Header pour le mois
+      const headerRowMonth = document.createElement('tr');
+      headerRowMonth.innerHTML = `<th scope="col" colspan="7" style="text-align: center;">${calendarData[i].split(' ')[2]}</th>`;
+      tbody.appendChild(headerRowMonth);
+
+      // Header pour les jours
+      const headerRowDay = document.createElement('tr');
+      for (let j = 0; j < 7; j++) {
+        headerRowDay.insertAdjacentHTML('beforeend', `<th scope="col" style="text-align: center;">${calendarData[i + j].split(' ')[0]}</th>`);
+      }
+      tbody.appendChild(headerRowDay);
+    }
+
+    // Add rows to the current tbody
     if (i % 7 === 0) {
-      // Create a new row for every 7 cells
       var row = document.createElement('tr');
     }
 
@@ -81,9 +103,10 @@ function displayPlannerTable(calendarData) {
       tbody.appendChild(row);
     }
   }
-  table.appendChild(tbody);
 
-
-  // Ajoutez le tableau au conteneur
-  tableContainer.appendChild(table);
+  // Ajoutez le dernier tableau au conteneur
+  const lastTable = document.createElement('table');
+  lastTable.className = 'table table-bordered';
+  lastTable.appendChild(tbody);
+  tableContainer.appendChild(lastTable);
 }
