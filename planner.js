@@ -28,14 +28,15 @@ function generatePlanner() {
 function generatePlannerData(names, initialDate, numberOfWeeks) {
   // Générez les données du calendrier pour le nombre spécifié de semaines
   const calendarData = [];
+  const dateOpt = {weekday: 'long', month: 'long', day: 'numeric'};
   for (let i = 0; i < 7 * numberOfWeeks; i++) {
-    calendarData.push(new Date(initialDate.getTime() + i * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR', { weekday: 'long', month: 'long', day: 'numeric' }));
+    calendarData.push(new Date(initialDate.getTime() + i * 86400000).toLocaleDateString('fr-FR', dateOpt));
   }
 
-  return { calendarData };
+  return calendarData;
 }
 
-function displayPlannerTable({ plannerData, calendarData }) {
+function displayPlannerTable(calendarData) {
   const tableContainer = document.getElementById('plannerTable');
 
   // Effacez le tableau précédent
@@ -47,9 +48,19 @@ function displayPlannerTable({ plannerData, calendarData }) {
 
   // Créez l'en-tête du tableau
   const thead = document.createElement('thead');
-  const headerRow = document.createElement('tr');
-  headerRow.innerHTML = '<th scope="col">Lundi</th><th scope="col">Mardi</th><th scope="col">Mercredi</th><th scope="col">Jeudi</th><th scope="col">Vendredi</th><th scope="col">Samedi</th><th scope="col">Dimanche</th>';
-  thead.appendChild(headerRow);
+
+  //Header pour le mois
+  const headerRowMonth = document.createElement('tr');
+  headerRowMonth.innerHTML = `<th scope="col" colspan="7" style="text-align: center;">${calendarData[0].split(' ')[2]}</th>`;
+  thead.appendChild(headerRowMonth);
+
+  //Header pour les jours
+  const headerRowDay = document.createElement('tr');
+  for (let i = 0; i < 7 ; i++) {
+    headerRowDay.insertAdjacentHTML('beforeend', `<th scope="col" style="text-align: center;">${calendarData[i].split(' ')[0]}</th>`);
+  }
+  thead.appendChild(headerRowDay);
+
   table.appendChild(thead);
 
   // Créez le corps du tableau
