@@ -33,20 +33,27 @@ function generatePlanner() {
   if (!DEBUG_MODE) {displayPlannerTable(nbDeGarde, calendarData);}  
 }
 
+function nameFulfiller(nbDeGarde, date, names) {
+  const randomIndex = Math.floor(Math.random() * names.length);
+  return names[randomIndex];
+}
+
 function generatePlannerData(names, nbDeGarde, initialDate, numberOfWeeks) {
   // Générez les données du calendrier pour le nombre spécifié de semaines
   const calendarData = [];
   const dateOpt = {weekday: 'long', month: 'long', day: 'numeric'};
 
   for (let i = 0; i < 7 * numberOfWeeks; i++) {
+    const currentDate = new Date(initialDate.getTime() + i * 24 * 60 * 60 * 1000);
+
     // Create an object to store the calendar data for the current week
     const weekData = {
-      date: new Date(initialDate.getTime() + i * 86400000).toLocaleDateString('fr-FR', dateOpt)
+      date: currentDate.toLocaleDateString('fr-FR', dateOpt)
     };
 
     // Add garde properties dynamically based on the names array
     for (let j = 0; j < nbDeGarde; j++) {
-      weekData[`garde${j + 1}`] = names[j];
+      weekData[`garde${j + 1}`] = nameFulfiller(j + 1, currentDate, names);
     }
 
     // Push the weekData object into the calendarData array
@@ -57,8 +64,6 @@ function generatePlannerData(names, nbDeGarde, initialDate, numberOfWeeks) {
 
   return calendarData;
 }
-
-
 
 function displayPlannerTable(nbDeGarde, calendarData) {
   const tableContainer = document.getElementById('plannerTable');
@@ -104,13 +109,6 @@ function displayPlannerTable(nbDeGarde, calendarData) {
       const headerRowMonth = document.createElement('tr');
       headerRowMonth.innerHTML = `<th scope="col" colspan="7" style="text-align: center;">${calendarData[i].date.split(' ')[2]}</th>`;
       tbody.appendChild(headerRowMonth);
-
-      // Header pour les jours
-      const headerRowDay = document.createElement('tr');
-      for (let j = 0; j < 7; j++) {
-        headerRowDay.insertAdjacentHTML('beforeend', `<th scope="col" style="text-align: center;">${calendarData[i + j].date.split(' ')[0]}</th>`);
-      }
-      tbody.appendChild(headerRowDay);
     }
 
     // Add rows to the current tbody
@@ -120,7 +118,7 @@ function displayPlannerTable(nbDeGarde, calendarData) {
 
     // Remplissez les cellules pour chaque jour de la semaine
     const cell = document.createElement('td');
-    cell.innerHTML = `${calendarData[i].date}<br>`;
+    cell.innerHTML = `<strong>${calendarData[i].date}</strong><br>`;
 
     for (let j = 0; j < nbDeGarde; j++) {
       cell.innerHTML += `${calendarData[i][`garde${j + 1}`]}<br>`;
