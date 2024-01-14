@@ -3,7 +3,7 @@ function generatePlanner() {
   let namesInput, nbDeGarde, initialDateInput, numberOfWeeksInput;
 
   if (DEBUG_MODE) {
-    namesInput = "toto"; 
+    namesInput = "riri, fifi, loulou"; 
     nbDeGarde = 2 ;
     initialDateInput = "2024-01-10";
     numberOfWeeksInput = 3;
@@ -25,28 +25,42 @@ function generatePlanner() {
 
   // Séparez les noms et les semaines de congé en tableaux
   const names = namesInput.split(',').map(name => name.trim());
-  //const weeksOff = weeksOffInput.split(',').map(Number);
 
   // Générez les données du planning
   const calendarData = generatePlannerData(names, nbDeGarde, initialDate, numberOfWeeksInput);
 
   // Affichez le tableau du planning
-  if (!DEBUG_MODE) {displayPlannerTable(calendarData);}  
+  if (!DEBUG_MODE) {displayPlannerTable(nbDeGarde, calendarData);}  
 }
 
 function generatePlannerData(names, nbDeGarde, initialDate, numberOfWeeks) {
   // Générez les données du calendrier pour le nombre spécifié de semaines
   const calendarData = [];
   const dateOpt = {weekday: 'long', month: 'long', day: 'numeric'};
+
   for (let i = 0; i < 7 * numberOfWeeks; i++) {
-      calendarData.push(new Date(initialDate.getTime() + i * 86400000).toLocaleDateString('fr-FR', dateOpt));
-      if (DEBUG_MODE) {console.log(calendarData);}
+    // Create an object to store the calendar data for the current week
+    const weekData = {
+      date: new Date(initialDate.getTime() + i * 86400000).toLocaleDateString('fr-FR', dateOpt)
+    };
+
+    // Add garde properties dynamically based on the names array
+    for (let j = 0; j < nbDeGarde; j++) {
+      weekData[`garde${j + 1}`] = names[j];
+    }
+
+    // Push the weekData object into the calendarData array
+    calendarData.push(weekData);
+
+    if (DEBUG_MODE) {console.log(calendarData);}
   }
 
   return calendarData;
 }
 
-function displayPlannerTable(calendarData) {
+
+
+function displayPlannerTable(nbDeGarde, calendarData) {
   const tableContainer = document.getElementById('plannerTable');
 
   // Effacez le tableau précédent
@@ -61,7 +75,7 @@ function displayPlannerTable(calendarData) {
 
   for (let i = 0; i < calendarData.length; i++) {
     // Evaluate when there is a new month
-    let currentMonth = calendarData[i].split(' ')[2];
+    let currentMonth = calendarData[i].date.split(' ')[2];
     
     if (i % 7 === 0) { //Reinit isNewMonth after 7 days 
       isNewMonth = false;
@@ -74,7 +88,7 @@ function displayPlannerTable(calendarData) {
     }
     
     // Create a new table every sunday of each new month
-    if (calendarData[i].split(' ')[0] === 'dimanche' && isNewMonth) { 
+    if (calendarData[i].date.split(' ')[0] === 'dimanche' && isNewMonth) { 
       // Close the previous table and add it to the container
       if (i !== 0) {
         const table = document.createElement('table');
@@ -88,13 +102,13 @@ function displayPlannerTable(calendarData) {
 
       // Header pour le mois
       const headerRowMonth = document.createElement('tr');
-      headerRowMonth.innerHTML = `<th scope="col" colspan="7" style="text-align: center;">${calendarData[i].split(' ')[2]}</th>`;
+      headerRowMonth.innerHTML = `<th scope="col" colspan="7" style="text-align: center;">${calendarData[i].date.split(' ')[2]}</th>`;
       tbody.appendChild(headerRowMonth);
 
       // Header pour les jours
       const headerRowDay = document.createElement('tr');
       for (let j = 0; j < 7; j++) {
-        headerRowDay.insertAdjacentHTML('beforeend', `<th scope="col" style="text-align: center;">${calendarData[i + j].split(' ')[0]}</th>`);
+        headerRowDay.insertAdjacentHTML('beforeend', `<th scope="col" style="text-align: center;">${calendarData[i + j].date.split(' ')[0]}</th>`);
       }
       tbody.appendChild(headerRowDay);
     }
@@ -106,7 +120,12 @@ function displayPlannerTable(calendarData) {
 
     // Remplissez les cellules pour chaque jour de la semaine
     const cell = document.createElement('td');
-    cell.textContent = calendarData[i];
+    cell.innerHTML = `${calendarData[i].date}<br>`;
+
+    for (let j = 0; j < nbDeGarde; j++) {
+      cell.innerHTML += `${calendarData[i][`garde${j + 1}`]}<br>`;
+    }
+    cell.style.textAlign = 'center'; // Apply text-align style to center-align the content
     row.appendChild(cell);
 
     // If this is the last cell in the row or the last iteration, add the row to the tbody
@@ -123,5 +142,6 @@ function displayPlannerTable(calendarData) {
 }
 
 //TEST
-const DEBUG_MODE = false;
+let DEBUG_MODE = false ;
+DEBUG_MODE = process.argv[2];
 if (DEBUG_MODE) {generatePlanner();}
