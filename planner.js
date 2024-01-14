@@ -1,16 +1,25 @@
 function generatePlanner() {
   // Obtenez les valeurs d'entrée
-  const namesInput = document.getElementById('names').value.trim();
-  //const weeksOffInput = document.getElementById('weeksOff').value.trim();
-  const initialDateInput = document.getElementById('initialDate').value;
-  const numberOfWeeksInput = document.getElementById('numberOfWeeks').value;
+  let namesInput, nbDeGarde, initialDateInput, numberOfWeeksInput;
 
-  // Validez les entrées
-  if (!namesInput || !initialDateInput || !numberOfWeeksInput) {
-    alert('Veuillez remplir tous les champs.');
-    return;
+  if (DEBUG_MODE) {
+    namesInput = "toto"; 
+    nbDeGarde = 2 ;
+    initialDateInput = "2024-01-10";
+    numberOfWeeksInput = 3;
   }
-
+  else {
+    namesInput = document.getElementById('names').value.trim();
+    nbDeGarde = document.getElementById('nbDeGarde').value.trim();
+    initialDateInput = document.getElementById('initialDate').value;
+    numberOfWeeksInput = document.getElementById('numberOfWeeks').value;
+    // Validez les entrées
+    if (!namesInput || !nbDeGarde || !initialDateInput || !numberOfWeeksInput) {
+      alert('Veuillez remplir tous les champs.');
+      return;
+    }
+  }
+  
   // Convertissez la chaîne de date initiale en objet Date
   const initialDate = new Date(initialDateInput);
 
@@ -19,18 +28,19 @@ function generatePlanner() {
   //const weeksOff = weeksOffInput.split(',').map(Number);
 
   // Générez les données du planning
-  const calendarData = generatePlannerData(names, initialDate, numberOfWeeksInput);
+  const calendarData = generatePlannerData(names, nbDeGarde, initialDate, numberOfWeeksInput);
 
   // Affichez le tableau du planning
-  displayPlannerTable(calendarData);
+  if (!DEBUG_MODE) {displayPlannerTable(calendarData);}  
 }
 
-function generatePlannerData(names, initialDate, numberOfWeeks) {
+function generatePlannerData(names, nbDeGarde, initialDate, numberOfWeeks) {
   // Générez les données du calendrier pour le nombre spécifié de semaines
   const calendarData = [];
   const dateOpt = {weekday: 'long', month: 'long', day: 'numeric'};
   for (let i = 0; i < 7 * numberOfWeeks; i++) {
-    calendarData.push(new Date(initialDate.getTime() + i * 86400000).toLocaleDateString('fr-FR', dateOpt));
+      calendarData.push(new Date(initialDate.getTime() + i * 86400000).toLocaleDateString('fr-FR', dateOpt));
+    console.log(calendarData);
   }
 
   return calendarData;
@@ -62,8 +72,9 @@ function displayPlannerTable(calendarData) {
       storedMonth = currentMonth;
       isNewMonth = true;
     }
-
-    if (calendarData[i].split(' ')[0] === 'dimanche' && isNewMonth) { // Create a new table every sunday of each new month
+    
+    // Create a new table every sunday of each new month
+    if (calendarData[i].split(' ')[0] === 'dimanche' && isNewMonth) { 
       // Close the previous table and add it to the container
       if (i !== 0) {
         const table = document.createElement('table');
@@ -110,3 +121,7 @@ function displayPlannerTable(calendarData) {
   lastTable.appendChild(tbody);
   tableContainer.appendChild(lastTable);
 }
+
+//TEST
+const DEBUG_MODE = false;
+if (DEBUG_MODE) {generatePlanner();}
