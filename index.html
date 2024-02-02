@@ -11,6 +11,26 @@
   <div class="container mt-5">
     <h1 class="mb-4">Planning Mensuel</h1>
 
+    <!-- Tableau pour afficher les vetos -->
+    <div class="mt-4">
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Vacances</th>
+              <th>Pourcentage</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="dataTableBody">
+            <!-- Existing rows (if any) will be added here dynamically -->
+          </tbody>
+        </table>
+    </div>
+
+    <!-- Bouton pour afficher une nouvelle ligne -->
+    <button type="button" class="btn btn-success" onclick="addInputGroup()">[+]</button>
+    
     <!-- Formulaire pour saisir les noms, les semaines de congé, la date initiale et le nombre de semaines -->
     <form id="plannerForm">
       <div class="form-group">
@@ -29,6 +49,7 @@
         <label for="numberOfWeeks">Saisissez le nombre de semaines :</label>
         <input type="number" class="form-control" id="numberOfWeeks" required>
       </div>
+      
       <button type="button" class="btn btn-primary" onclick="generatePlanner()">Générer le Planning</button>
     </form>
 

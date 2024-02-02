@@ -1,3 +1,59 @@
+// Add a new input group dynamically
+// Add a new input group and update the table dynamically
+function addInputGroup() {
+  const tableBody = document.getElementById('dataTableBody');
+
+  const newRow = document.createElement('tr');
+
+  // Nom
+  const nameCell = document.createElement('td');
+  const nameInput = document.createElement('input');
+  nameInput.type = 'text';
+  nameInput.classList.add('name', 'form-control');
+  nameInput.required = true;
+  nameCell.appendChild(nameInput);
+  newRow.appendChild(nameCell);
+
+  // Vacances
+  const vacationCell = document.createElement('td');
+  const vacationInput = document.createElement('input');
+  vacationInput.type = 'text';
+  vacationInput.classList.add('vacation', 'form-control');
+  vacationInput.placeholder = 'e.g., 2024-03-05 to 2024-04-05';
+  vacationInput.required = true;
+  vacationCell.appendChild(vacationInput);
+  newRow.appendChild(vacationCell);
+
+  // Pourcentage
+  const percentageCell = document.createElement('td');
+  const percentageInput = document.createElement('input');
+  percentageInput.type = 'number';
+  percentageInput.classList.add('percentage', 'form-control');
+  percentageInput.placeholder = 'e.g., 80';
+  percentageInput.required = true;
+  percentageCell.appendChild(percentageInput);
+  newRow.appendChild(percentageCell);
+
+  // Remove button
+  const removeCell = document.createElement('td');
+  const removeButton = document.createElement('button');
+  removeButton.type = 'button';
+  removeButton.classList.add('btn', 'btn-danger');
+  removeButton.textContent = '[-]';
+  removeButton.onclick = function () {
+    removeInputGroup(this);
+  };
+  removeCell.appendChild(removeButton);
+  newRow.appendChild(removeCell);
+
+  tableBody.appendChild(newRow);
+}
+
+function removeInputGroup(button) {
+  const tableRow = button.closest('tr'); // Find the closest ancestor tr element
+  tableRow.parentNode.removeChild(tableRow); // Remove the entire row
+}
+
 function generatePlanner() {
   // Obtenez les valeurs d'entrée
   let namesInput, nbDeGarde, initialDateInput, numberOfWeeksInput;
