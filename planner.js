@@ -3,6 +3,7 @@ function addInputGroup() {
   const tableBody = document.getElementById('dataTableBody');
 
   const newRow = document.createElement('tr');
+  newRow.classList.add('dynamic-input-group'); 
 
   // Nom
   const nameCell = document.createElement('td');
@@ -12,6 +13,15 @@ function addInputGroup() {
   nameInput.required = true;
   nameCell.appendChild(nameInput);
   newRow.appendChild(nameCell);
+
+  // Repos
+  const reposCell = document.createElement('td');
+  const reposInput = document.createElement('input');
+  reposInput.type = 'text';
+  reposInput.classList.add('repos', 'form-control');
+  reposInput.required = true;
+  reposCell.appendChild(reposInput);
+  newRow.appendChild(reposCell);
 
   // Vacances
   const vacationCell = document.createElement('td');
@@ -55,21 +65,56 @@ function removeInputGroup(button) {
 
 function generatePlanner() {
   // Obtenez les valeurs d'entrée
-  let namesInput, nbDeGarde, initialDateInput, numberOfWeeksInput;
+  let nbDeGarde, initialDateInput, numberOfWeeksInput;
+  let dynamicInputs = [];
 
   if (DEBUG_MODE) {
-    namesInput = "riri, fifi, loulou"; 
+    dynamicInputs = [
+      {
+        "name": "riri",
+        "repos": "Lundi",
+        "vacation": "2024-02-02",
+        "percentage": "80"
+      },
+      {
+        "name": "fifi",
+        "repos": "Mardi",
+        "vacation": "2024-02-08",
+        "percentage": "100"
+      },
+      {
+        "name": "loulou",
+        "repos": "Mercredi",
+        "vacation": "2024-02-15",
+        "percentage": "100"
+      }
+    ];
     nbDeGarde = 2 ;
     initialDateInput = "2024-01-10";
     numberOfWeeksInput = 3;
   }
   else {
-    namesInput = document.getElementById('names').value.trim();
+    // Obtenez les valeurs des champs dynamiques
+    const inputGroups = document.querySelectorAll('.dynamic-input-group');
+
+    inputGroups.forEach(group => {
+      const name = group.querySelector('.name').value.trim();
+      const repos = group.querySelector('.repos').value.trim();
+      const vacation = group.querySelector('.vacation').value.trim();
+      const percentage = group.querySelector('.percentage').value.trim();
+
+      dynamicInputs.push({ name, repos, vacation, percentage });
+    });
+
+    // Maintenant, vous avez les valeurs dans dynamicInputs
+    console.log(dynamicInputs);
+
+    // Champs d'options
     nbDeGarde = document.getElementById('nbDeGarde').value.trim();
     initialDateInput = document.getElementById('initialDate').value;
     numberOfWeeksInput = document.getElementById('numberOfWeeks').value;
     // Validez les entrées
-    if (!namesInput || !nbDeGarde || !initialDateInput || !numberOfWeeksInput) {
+    if (!nbDeGarde || !initialDateInput || !numberOfWeeksInput) {
       alert('Veuillez remplir tous les champs.');
       return;
     }
@@ -78,22 +123,19 @@ function generatePlanner() {
   // Convertissez la chaîne de date initiale en objet Date
   const initialDate = new Date(initialDateInput);
 
-  // Séparez les noms et les semaines de congé en tableaux
-  const names = namesInput.split(',').map(name => name.trim());
-
   // Générez les données du planning
-  const calendarData = generatePlannerData(names, nbDeGarde, initialDate, numberOfWeeksInput);
+  const calendarData = generatePlannerData(dynamicInputs, nbDeGarde, initialDate, numberOfWeeksInput);
 
   // Affichez le tableau du planning
   if (!DEBUG_MODE) {displayPlannerTable(nbDeGarde, calendarData);}  
 }
 
-function nameFulfiller(nbDeGarde, date, names) {
-  const randomIndex = Math.floor(Math.random() * names.length);
-  return names[randomIndex];
+function nameFulfiller(nbDeGarde, date, dynamicInputs) {
+  const randomIndex = Math.floor(Math.random() * dynamicInputs.length);
+  return dynamicInputs[randomIndex].name;
 }
 
-function generatePlannerData(names, nbDeGarde, initialDate, numberOfWeeks) {
+function generatePlannerData(dynamicInputs, nbDeGarde, initialDate, numberOfWeeks) {
   // Générez les données du calendrier pour le nombre spécifié de semaines
   const calendarData = [];
   const dateOpt = {weekday: 'long', month: 'long', day: 'numeric'};
@@ -108,7 +150,7 @@ function generatePlannerData(names, nbDeGarde, initialDate, numberOfWeeks) {
 
     // Add garde properties dynamically based on the names array
     for (let j = 0; j < nbDeGarde; j++) {
-      weekData[`garde${j + 1}`] = nameFulfiller(j + 1, currentDate, names);
+      weekData[`garde${j + 1}`] = nameFulfiller(j + 1, currentDate, dynamicInputs);
     }
 
     // Push the weekData object into the calendarData array
