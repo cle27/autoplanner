@@ -1,4 +1,3 @@
-// Add a new input group dynamically
 // Add a new input group and update the table dynamically
 function addInputGroup() {
   const tableBody = document.getElementById('dataTableBody');
@@ -19,7 +18,7 @@ function addInputGroup() {
   const vacationInput = document.createElement('input');
   vacationInput.type = 'text';
   vacationInput.classList.add('vacation', 'form-control');
-  vacationInput.placeholder = 'e.g., 2024-03-05 to 2024-04-05';
+  vacationInput.placeholder = '2024-03-04, 2024-03-05';
   vacationInput.required = true;
   vacationCell.appendChild(vacationInput);
   newRow.appendChild(vacationCell);
@@ -29,7 +28,7 @@ function addInputGroup() {
   const percentageInput = document.createElement('input');
   percentageInput.type = 'number';
   percentageInput.classList.add('percentage', 'form-control');
-  percentageInput.placeholder = 'e.g., 80';
+  percentageInput.placeholder = '80';
   percentageInput.required = true;
   percentageCell.appendChild(percentageInput);
   newRow.appendChild(percentageCell);

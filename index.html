@@ -17,7 +17,11 @@
           <thead>
             <tr>
               <th>Nom</th>
-              <th>Vacances</th>
+              <th>Vacances
+                <small class="text-muted" data-toggle="tooltip" data-placement="top" title="Chaque jour de vacances (ou congé) doit être séparé par une virgule.">
+                  [?]
+                </small>
+              </th>
               <th>Pourcentage</th>
               <th>Action</th>
             </tr>
@@ -62,6 +66,8 @@
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
   <script src="planner.js"></script>
+  <!-- Initialise tooltip bubble -->
+  <script>$(document).ready(function(){$('[data-toggle="tooltip"]').tooltip();});</script>
 
 </body>
 </html>
