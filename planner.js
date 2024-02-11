@@ -1,5 +1,6 @@
 // Generic const
 const dateOpt = {weekday: 'long', month: 'long', day: 'numeric'};
+const weekendDays = ['samedi','dimanche']
 
 // Add a new input group and update the table dynamically
 function addInputGroup() {
@@ -76,7 +77,7 @@ function removeInputGroup(button) {
 
 function generatePlanner() {
   // Obtenez les valeurs d'entrée
-  let nbDeGarde, initialDateInput, numberOfWeeksInput;
+  let nbDeGarde, initialDateInput, numberOfWeeksInput, oneIsTwoWE, isOneIsTwoWE;
   let dynamicInputs = [];
 
   if (DEBUG_MODE) {
@@ -103,12 +104,15 @@ function generatePlanner() {
     nbDeGarde = 2 ;
     initialDateInput = "2024-01-10";
     numberOfWeeksInput = 3;
+    oneIsTwoWE = true;
   }
   else {
     // Get les valeurs des champs statiques
     nbDeGarde = document.getElementById('nbDeGarde').value.trim();
     initialDateInput = document.getElementById('initialDate').value;
     numberOfWeeksInput = document.getElementById('numberOfWeeks').value;
+    oneIsTwoWE = document.getElementById('oneIsTwoWE');
+    isOneIsTwoWE = oneIsTwoWE.checked;
 
     // Check input
     // Not empty
@@ -172,31 +176,38 @@ function generatePlanner() {
   const initialDate = new Date(initialDateInput);
 
   // Générez les données du planning
-  const calendarData = generatePlannerData(dynamicInputs, nbDeGarde, initialDate, numberOfWeeksInput);
+  const calendarData = generatePlannerData(dynamicInputs, nbDeGarde, initialDate, numberOfWeeksInput, isOneIsTwoWE);
   console.log(calendarData);
 
   // Affichez le tableau du planning en mode pas debug
   if (!DEBUG_MODE) {displayPlannerTable(nbDeGarde, calendarData);}  
 }
 
-function nameFulfiller(currNbDeGarde, currentDate, calendarData, dynamicInputs, nameUsed) {
+function nameFulfiller(currNbDeGarde, currentDate, calendarData, dynamicInputs, nameUsed, isOneIsTwoWE) {
   let nameResult = "";
   let nameList = [];
   const currentDateStr = currentDate.toLocaleDateString('fr-FR', dateOpt);
+  const currentDayName = currentDate.toLocaleDateString('fr-FR', { weekday: 'long' })
 
   // Get the names from dynamicInputs
   for (let i = 0; i < dynamicInputs.length; i++) {
     const currName = dynamicInputs[i].name
-    //If the name is already used for the day, don't use it
+    // If the name is already used for the day, don't use it
     if (!nameUsed.includes(currName)) {
       nameList.push(currName);
     }
   }
 
-
-
-  // If there are available names, randomly select one
-  if (nameList.length > 0) {
+  // If the day is weekend, use Friday values
+  if (weekendDays.includes(currentDayName) && isOneIsTwoWE){
+    if (currNbDeGarde == 1) {
+      nameResult = calendarData[calendarData.length - (weekendDays.indexOf(currentDayName)+1)].garde2;
+    } else if (currNbDeGarde == 2) {
+      nameResult = calendarData[calendarData.length - (weekendDays.indexOf(currentDayName)+1)].garde1;
+    } else {
+      nameResult = calendarData[calendarData.length - (weekendDays.indexOf(currentDayName)+1)][`garde${currNbDeGarde}`]
+    }
+  } else if (nameList.length > 0) { // If there are available names, randomly select one
     const randomIndex = Math.floor(Math.random() * nameList.length);
     nameResult = nameList[randomIndex];
   } else {
@@ -208,7 +219,7 @@ function nameFulfiller(currNbDeGarde, currentDate, calendarData, dynamicInputs, 
 }
 
 
-function generatePlannerData(dynamicInputs, nbDeGarde, initialDate, numberOfWeeks) {
+function generatePlannerData(dynamicInputs, nbDeGarde, initialDate, numberOfWeeks, isOneIsTwoWE) {
   // Générez les données du calendrier pour le nombre spécifié de semaines
   const calendarData = [];
 
@@ -232,7 +243,7 @@ function generatePlannerData(dynamicInputs, nbDeGarde, initialDate, numberOfWeek
 
     // Add garde properties dynamically based on the names array
     for (let j = 0; j < nbDeGarde; j++) {
-      dayData[`garde${j + 1}`] = nameFulfiller(j + 1, currentDate, calendarData, dynamicInputs, nameUsed);
+      dayData[`garde${j + 1}`] = nameFulfiller(j + 1, currentDate, calendarData, dynamicInputs, nameUsed, isOneIsTwoWE);
       nameUsed.push(dayData[`garde${j + 1}`]);
     }
 
