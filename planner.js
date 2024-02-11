@@ -145,22 +145,49 @@ function generatePlanner() {
 }
 
 function nameFulfiller(nbDeGarde, currentDate, calendarData, dynamicInputs) {
-  const randomIndex = Math.floor(Math.random() * dynamicInputs.length);
-  return dynamicInputs[randomIndex].name;
+  let nameResult = "";
+  let nameList = [];
+  const currentDateStr = currentDate.toLocaleDateString();
+
+  // Get the names from dynamicInputs
+  for (let i = 0; i < dynamicInputs.length; i++) {
+    nameList.push(dynamicInputs[i].name);
+  }
+
+  // If there are available names, randomly select one
+  if (nameList.length > 0) {
+    const randomIndex = Math.floor(Math.random() * nameList.length);
+    nameResult = nameList[randomIndex];
+  } else {
+    // Handle the case where all names are already assigned, if needed
+    console.log("All names are already assigned for the current date.");
+  }
+
+  return nameResult;
 }
+
 
 function generatePlannerData(dynamicInputs, nbDeGarde, initialDate, numberOfWeeks) {
   // Générez les données du calendrier pour le nombre spécifié de semaines
   const calendarData = [];
   const dateOpt = {weekday: 'long', month: 'long', day: 'numeric'};
+  let nameUsed = [];
 
   for (let i = 0; i < 7 * numberOfWeeks; i++) {
     const currentDate = new Date(initialDate.getTime() + i * 24 * 60 * 60 * 1000);
 
     // Create an object to store the calendar data for the current week
     const weekData = {
-      date: currentDate.toLocaleDateString('fr-FR', dateOpt)
+      date: currentDate.toLocaleDateString('fr-FR', dateOpt),
+      repos: []
     };
+
+    // Check if today is a jour de repos for any person and add them to the list
+    dynamicInputs.forEach(input => {
+      if (currentDate.toLocaleDateString('fr-FR', { weekday: 'long' }) === input.repos) {
+        weekData.repos.push(input.name);
+      }
+    });
 
     // Add garde properties dynamically based on the names array
     for (let j = 0; j < nbDeGarde; j++) {
@@ -231,8 +258,14 @@ function displayPlannerTable(nbDeGarde, calendarData) {
     const cell = document.createElement('td');
     cell.innerHTML = `<strong>${calendarData[i].date}</strong><br>`;
 
+    // Garde
     for (let j = 0; j < nbDeGarde; j++) {
       cell.innerHTML += `${calendarData[i][`garde${j + 1}`]}<br>`;
+    }
+
+    //Repos
+    if (calendarData[i][`repos`].length > 0){
+      cell.innerHTML += `Repos : <i>${calendarData[i][`repos`]}</i><br>`;      
     }
     cell.style.textAlign = 'center'; // Apply text-align style to center-align the content
     row.appendChild(cell);
