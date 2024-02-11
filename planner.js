@@ -19,10 +19,8 @@ function addInputGroup() {
   const reposSelect = document.createElement('select');
   reposSelect.classList.add('repos', 'form-control');
   reposSelect.required = true;
-
   // Array of days of the week
   const daysOfWeek = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
-
   // Create options for each day
   daysOfWeek.forEach(day => {
     const option = document.createElement('option');
@@ -30,9 +28,8 @@ function addInputGroup() {
     option.text = day;
     reposSelect.appendChild(option);
   });
-
-reposCell.appendChild(reposSelect);
-newRow.appendChild(reposCell);
+  reposCell.appendChild(reposSelect);
+  newRow.appendChild(reposCell);
 
   // Vacances
   const vacationCell = document.createElement('td');
@@ -110,9 +107,20 @@ function generatePlanner() {
     initialDateInput = document.getElementById('initialDate').value;
     numberOfWeeksInput = document.getElementById('numberOfWeeks').value;
 
-    // Validez les entrées
-    if (!nbDeGarde || !initialDateInput || !numberOfWeeksInput) {
-      alert('Veuillez remplir tous les champs.');
+    // Check input
+    // Not empty
+    if (!initialDateInput) {
+      alert('Veuillez remplir la date initiale du calendrier (un lundi).');
+      return;
+    }
+
+    // nbDeGarde and numberOfWeeks are numbers
+    if (!nbDeGarde) {
+      alert('Le nombre de personnes de garde doit être un nombre valide.');
+      return;
+    }
+    if (!numberOfWeeksInput) {
+      alert('Le nombre de semaines doit être un nombre valide.');
       return;
     }
 
@@ -122,12 +130,36 @@ function generatePlanner() {
     inputGroups.forEach(group => {
       const name = group.querySelector('.name').value.trim();
       const repos = group.querySelector('.repos').value.trim().toLowerCase();
-      const vacation = group.querySelector('.vacation').value.trim();
+      const vacationInput = group.querySelector('.vacation').value.trim();
       const percentage = group.querySelector('.percentage').value.trim();
+
+      // Checks
+      // Name is not empty
+      if (!name) {
+        alert('Le nom ne doit pas être vide.');
+        return;
+      }
+      // Percentage is valid number
+      if (!percentage) {
+        alert('Le pourcentage doit être un nombre valide.');
+        return;
+      }
+
+      // Split the comma-separated values into an array
+      const vacationArray = vacationInput.split(',').map(date => date.trim());
+      const vacationRegex = /^\d{4}-\d{2}-\d{2}$/; // YYYY-MM-DD format
+      
+      for (const date of vacationArray) {
+        if (!vacationRegex.test(date)) {
+          alert('Le format des dates de congés doit être YYYY-MM-DD séparé par des virgules pour chaque jour de vacances.');
+          return; // Stop further processing
+        }
+      }
+
       // Créé un array basé sur le nbDeGarde
       const gardeArray = Array.from({ length: nbDeGarde }, () => 0);
 
-      dynamicInputs.push({ name, repos, vacation, percentage, gardeArray});
+      dynamicInputs.push({ name, repos, vacation: vacationArray, percentage, gardeArray});
     });
 
     console.log(dynamicInputs);
@@ -144,7 +176,7 @@ function generatePlanner() {
   if (!DEBUG_MODE) {displayPlannerTable(nbDeGarde, calendarData);}  
 }
 
-function nameFulfiller(nbDeGarde, currentDate, calendarData, dynamicInputs, nameUsed) {
+function nameFulfiller(currNbDeGarde, currentDate, calendarData, dynamicInputs, nameUsed) {
   let nameResult = "";
   let nameList = [];
   const currentDateStr = currentDate.toLocaleDateString();
@@ -152,10 +184,13 @@ function nameFulfiller(nbDeGarde, currentDate, calendarData, dynamicInputs, name
   // Get the names from dynamicInputs
   for (let i = 0; i < dynamicInputs.length; i++) {
     const currName = dynamicInputs[i].name
+    //If the name is already used for the day, don't use it
     if (!nameUsed.includes(currName)) {
       nameList.push(currName);
     }
   }
+
+
 
   // If there are available names, randomly select one
   if (nameList.length > 0) {
@@ -270,7 +305,7 @@ function displayPlannerTable(nbDeGarde, calendarData) {
 
     //Repos
     if (calendarData[i][`repos`].length > 0){
-      cell.innerHTML += `Repos : <i>${calendarData[i][`repos`]}</i><br>`;      
+      cell.innerHTML += `R: <i>${calendarData[i][`repos`]}</i><br>`;      
     }
     cell.style.textAlign = 'center'; // Apply text-align style to center-align the content
     row.appendChild(cell);
