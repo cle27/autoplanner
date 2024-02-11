@@ -1,3 +1,6 @@
+// Generic const
+const dateOpt = {weekday: 'long', month: 'long', day: 'numeric'};
+
 // Add a new input group and update the table dynamically
 function addInputGroup() {
   const tableBody = document.getElementById('dataTableBody');
@@ -179,7 +182,7 @@ function generatePlanner() {
 function nameFulfiller(currNbDeGarde, currentDate, calendarData, dynamicInputs, nameUsed) {
   let nameResult = "";
   let nameList = [];
-  const currentDateStr = currentDate.toLocaleDateString();
+  const currentDateStr = currentDate.toLocaleDateString('fr-FR', dateOpt);
 
   // Get the names from dynamicInputs
   for (let i = 0; i < dynamicInputs.length; i++) {
@@ -198,7 +201,7 @@ function nameFulfiller(currNbDeGarde, currentDate, calendarData, dynamicInputs, 
     nameResult = nameList[randomIndex];
   } else {
     // Handle the case where all names are already assigned, if needed
-    console.log("All names are already assigned for the current date.");
+    console.log("Tous les noms sont déjà assignés pour " + currentDateStr);
   }
 
   return nameResult;
@@ -208,14 +211,13 @@ function nameFulfiller(currNbDeGarde, currentDate, calendarData, dynamicInputs, 
 function generatePlannerData(dynamicInputs, nbDeGarde, initialDate, numberOfWeeks) {
   // Générez les données du calendrier pour le nombre spécifié de semaines
   const calendarData = [];
-  const dateOpt = {weekday: 'long', month: 'long', day: 'numeric'};
 
   for (let i = 0; i < 7 * numberOfWeeks; i++) {
     const currentDate = new Date(initialDate.getTime() + i * 24 * 60 * 60 * 1000);
     const nameUsed = [];
 
     // Create an object to store the calendar data for the current week
-    const weekData = {
+    const dayData = {
       date: currentDate.toLocaleDateString('fr-FR', dateOpt),
       repos: []
     };
@@ -224,18 +226,18 @@ function generatePlannerData(dynamicInputs, nbDeGarde, initialDate, numberOfWeek
     dynamicInputs.forEach(input => {
       if (currentDate.toLocaleDateString('fr-FR', { weekday: 'long' }) === input.repos) {
         nameUsed.push(input.name)
-        weekData.repos.push(input.name);
+        dayData.repos.push(input.name);
       }
     });
 
     // Add garde properties dynamically based on the names array
     for (let j = 0; j < nbDeGarde; j++) {
-      weekData[`garde${j + 1}`] = nameFulfiller(j + 1, currentDate, calendarData, dynamicInputs, nameUsed);
-      nameUsed.push(weekData[`garde${j + 1}`]);
+      dayData[`garde${j + 1}`] = nameFulfiller(j + 1, currentDate, calendarData, dynamicInputs, nameUsed);
+      nameUsed.push(dayData[`garde${j + 1}`]);
     }
 
-    // Push the weekData object into the calendarData array
-    calendarData.push(weekData);
+    // Push the dayData object into the calendarData array
+    calendarData.push(dayData);
 
     if (DEBUG_MODE) {console.log(calendarData);}
   }
