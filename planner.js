@@ -144,14 +144,17 @@ function generatePlanner() {
   if (!DEBUG_MODE) {displayPlannerTable(nbDeGarde, calendarData);}  
 }
 
-function nameFulfiller(nbDeGarde, currentDate, calendarData, dynamicInputs) {
+function nameFulfiller(nbDeGarde, currentDate, calendarData, dynamicInputs, nameUsed) {
   let nameResult = "";
   let nameList = [];
   const currentDateStr = currentDate.toLocaleDateString();
 
   // Get the names from dynamicInputs
   for (let i = 0; i < dynamicInputs.length; i++) {
-    nameList.push(dynamicInputs[i].name);
+    const currName = dynamicInputs[i].name
+    if (!nameUsed.includes(currName)) {
+      nameList.push(currName);
+    }
   }
 
   // If there are available names, randomly select one
@@ -171,10 +174,10 @@ function generatePlannerData(dynamicInputs, nbDeGarde, initialDate, numberOfWeek
   // Générez les données du calendrier pour le nombre spécifié de semaines
   const calendarData = [];
   const dateOpt = {weekday: 'long', month: 'long', day: 'numeric'};
-  let nameUsed = [];
 
   for (let i = 0; i < 7 * numberOfWeeks; i++) {
     const currentDate = new Date(initialDate.getTime() + i * 24 * 60 * 60 * 1000);
+    const nameUsed = [];
 
     // Create an object to store the calendar data for the current week
     const weekData = {
@@ -185,13 +188,15 @@ function generatePlannerData(dynamicInputs, nbDeGarde, initialDate, numberOfWeek
     // Check if today is a jour de repos for any person and add them to the list
     dynamicInputs.forEach(input => {
       if (currentDate.toLocaleDateString('fr-FR', { weekday: 'long' }) === input.repos) {
+        nameUsed.push(input.name)
         weekData.repos.push(input.name);
       }
     });
 
     // Add garde properties dynamically based on the names array
     for (let j = 0; j < nbDeGarde; j++) {
-      weekData[`garde${j + 1}`] = nameFulfiller(j + 1, currentDate, calendarData, dynamicInputs);
+      weekData[`garde${j + 1}`] = nameFulfiller(j + 1, currentDate, calendarData, dynamicInputs, nameUsed);
+      nameUsed.push(weekData[`garde${j + 1}`]);
     }
 
     // Push the weekData object into the calendarData array
@@ -260,7 +265,7 @@ function displayPlannerTable(nbDeGarde, calendarData) {
 
     // Garde
     for (let j = 0; j < nbDeGarde; j++) {
-      cell.innerHTML += `${calendarData[i][`garde${j + 1}`]}<br>`;
+      cell.innerHTML += `${j + 1}: ${calendarData[i][`garde${j + 1}`]}<br>`;
     }
 
     //Repos
