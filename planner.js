@@ -233,9 +233,10 @@ function generatePlannerData(dynamicInputs, nbDeGarde, initialDate, numberOfWeek
       repos: []
     };
 
-    // Check if today is a jour de repos for any person and add them to the list
+    // Check if today is a jour de repos or congé for any person and add them to the list
     dynamicInputs.forEach(input => {
-      if (currentDate.toLocaleDateString('fr-FR', { weekday: 'long' }) === input.repos) {
+      if ((currentDate.toLocaleDateString('fr-FR', { weekday: 'long' }) === input.repos) ||
+          (input.vacation.includes(currentDate.toISOString().split('T')[0])) ) { // Format Current Date
         nameUsed.push(input.name)
         dayData.repos.push(input.name);
       }
