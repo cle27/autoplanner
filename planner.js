@@ -50,7 +50,7 @@ function addInputGroup() {
   const percentageInput = document.createElement('input');
   percentageInput.type = 'number';
   percentageInput.classList.add('percentage', 'form-control');
-  percentageInput.placeholder = '80';
+  percentageInput.placeholder = '100 par défaut';
   percentageInput.required = true;
   percentageCell.appendChild(percentageInput);
   newRow.appendChild(percentageCell);
@@ -138,7 +138,7 @@ function generatePlanner() {
       const name = group.querySelector('.name').value.trim();
       const repos = group.querySelector('.repos').value.trim().toLowerCase();
       const vacationInput = group.querySelector('.vacation').value.trim();
-      const percentage = group.querySelector('.percentage').value.trim();
+      const percentageInput = group.querySelector('.percentage').value.trim();
 
       // Checks
       // Name is not empty
@@ -146,18 +146,16 @@ function generatePlanner() {
         alert('Le nom ne doit pas être vide.');
         return;
       }
-      // Percentage is valid number
-      if (!percentage) {
-        alert('Le pourcentage doit être un nombre valide.');
-        return;
-      }
+           
+      // Ternary : If percentage is not empty, convert it to a number
+      const percentage = percentageInput ? Number(percentageInput) : 100;
 
       // Split the comma-separated values into an array
       const vacationArray = vacationInput.split(',').map(date => date.trim());
       const vacationRegex = /^\d{4}-\d{2}-\d{2}$/; // YYYY-MM-DD format
       
       for (const date of vacationArray) {
-        if (!vacationRegex.test(date)) {
+        if (date && !vacationRegex.test(date)) {
           alert('Le format des dates de congés doit être YYYY-MM-DD séparé par des virgules pour chaque jour de vacances.');
           return; // Stop further processing
         }
@@ -236,7 +234,7 @@ function generatePlannerData(dynamicInputs, nbDeGarde, initialDate, numberOfWeek
     // Check if today is a jour de repos or congé for any person and add them to the list
     dynamicInputs.forEach(input => {
       if ((currentDate.toLocaleDateString('fr-FR', { weekday: 'long' }) === input.repos) ||
-          (input.vacation.includes(currentDate.toISOString().split('T')[0])) ) { // Format Current Date
+          (input.vacation.includes(currentDate.toISOString().split('T')[0])) ) { // Format Current Date into YYYY-MM-DD
         nameUsed.push(input.name)
         dayData.repos.push(input.name);
       }
@@ -246,6 +244,14 @@ function generatePlannerData(dynamicInputs, nbDeGarde, initialDate, numberOfWeek
     for (let j = 0; j < nbDeGarde; j++) {
       dayData[`garde${j + 1}`] = nameFulfiller(j + 1, currentDate, calendarData, dynamicInputs, nameUsed, isOneIsTwoWE);
       nameUsed.push(dayData[`garde${j + 1}`]);
+
+      // Find the dynamic input for the current name
+      const dynamicInput = dynamicInputs.find(input => input.name === dayData[`garde${j + 1}`]);
+
+      // Update the gardeArray for the found dynamic input
+      if (dynamicInput) {
+        dynamicInput.gardeArray[j]++;
+      }
     }
 
     // Push the dayData object into the calendarData array
