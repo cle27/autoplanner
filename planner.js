@@ -121,7 +121,7 @@ function removeInputGroup(button) {
 
 function generatePlanner() {
   // Obtenez les valeurs d'entrée
-  let nbDeGarde, initialDateInput, numberOfWeeksInput, oneIsTwoWE, isOneIsTwoWE, jourFerieSeparated, isJourFerieSeparated;
+  let nbDeGarde, initialDateInput, numberOfWeeksInput, oneIsTwoWE, isOneIsTwoWE, jourFerieSeparated, isJourFerieSeparated, weekendSeparated, isWeekendSeparated;
   let dynamicInputs = [];
 
   if (DEBUG_MODE) {
@@ -150,6 +150,7 @@ function generatePlanner() {
     numberOfWeeksInput = 3;
     isOneIsTwoWE = true;
     isJourFerieSeparated = true;
+    isWeekendSeparated = true;
   }
   else {
     // Get les valeurs des champs statiques
@@ -160,6 +161,8 @@ function generatePlanner() {
     isOneIsTwoWE = oneIsTwoWE.checked;
     jourFerieSeparated = document.getElementById('jourFerieSeparated');
     isJourFerieSeparated = jourFerieSeparated.checked;
+    weekendSeparated = document.getElementById('weekendSeparated');
+    isWeekendSeparated = weekendSeparated.checked;
 
     // Check input
     // Not empty
@@ -223,7 +226,7 @@ function generatePlanner() {
   const initialDate = new Date(initialDateInput);
 
   // Générez les données du planning
-  const calendarData = generatePlannerData(dynamicInputs, nbDeGarde, initialDate, numberOfWeeksInput, isOneIsTwoWE, isJourFerieSeparated);
+  const calendarData = generatePlannerData(dynamicInputs, nbDeGarde, initialDate, numberOfWeeksInput, isOneIsTwoWE, isJourFerieSeparated, isWeekendSeparated);
   console.log(calendarData);
 
   // Refresh Garde Output Cells
@@ -232,12 +235,14 @@ function generatePlanner() {
     const gardeArrayValues = "Sem: " + dynamicInputs[index].gardeArray.join(', ');
     cell.textContent = gardeArrayValues;
   });
+  if (isWeekendSeparated) { // If we consider Weekends as separated
   const gardeArrayWECells = document.querySelectorAll('.gardeArrayWE');
   gardeArrayWECells.forEach((cell, index) => {
     const gardeArrayWEValues = "WE: " + dynamicInputs[index].gardeArrayWE.join(', ');
     cell.textContent = gardeArrayWEValues;
   });
-  if (isJourFerieSeparated) {
+  }
+  if (isJourFerieSeparated) { // If we consider Jours Férié as separated
     const gardeArrayJFCells = document.querySelectorAll('.gardeArrayJF');
     gardeArrayJFCells.forEach((cell, index) => {
       const gardeArrayJFValues = "Férié: " + dynamicInputs[index].gardeArrayJF.join(', ');
@@ -249,7 +254,7 @@ function generatePlanner() {
   if (!DEBUG_MODE) {displayPlannerTable(nbDeGarde, calendarData);}  
 }
 
-function nameFulfiller(currNbDeGarde, currentDate, currentDayName, calendarData, dynamicInputs, nameUsed, isOneIsTwoWE, isJourFerieSeparated) {
+function nameFulfiller(currNbDeGarde, currentDate, currentDayName, calendarData, dynamicInputs, nameUsed, isOneIsTwoWE, isJourFerieSeparated, isWeekendSeparated) {
   let nameResult = "";
   let nameList = [];
   const currentDateStr = currentDate.toLocaleDateString('fr-FR', dateOpt);
@@ -284,7 +289,7 @@ function nameFulfiller(currNbDeGarde, currentDate, currentDayName, calendarData,
 }
 
 
-function generatePlannerData(dynamicInputs, nbDeGarde, initialDate, numberOfWeeks, isOneIsTwoWE, isJourFerieSeparated) {
+function generatePlannerData(dynamicInputs, nbDeGarde, initialDate, numberOfWeeks, isOneIsTwoWE, isJourFerieSeparated, isWeekendSeparated) {
   // Générez les données du calendrier pour le nombre spécifié de semaines
   const calendarData = [];
 
@@ -310,7 +315,7 @@ function generatePlannerData(dynamicInputs, nbDeGarde, initialDate, numberOfWeek
 
     // Add garde properties dynamically based on the names array
     for (let j = 0; j < nbDeGarde; j++) {
-      dayData[`garde${j + 1}`] = nameFulfiller(j + 1, currentDate, currentDayName, calendarData, dynamicInputs, nameUsed, isOneIsTwoWE, isJourFerieSeparated);
+      dayData[`garde${j + 1}`] = nameFulfiller(j + 1, currentDate, currentDayName, calendarData, dynamicInputs, nameUsed, isOneIsTwoWE, isJourFerieSeparated, isWeekendSeparated);
       nameUsed.push(dayData[`garde${j + 1}`]);
 
       // Find the dynamic input for the current name
@@ -318,7 +323,7 @@ function generatePlannerData(dynamicInputs, nbDeGarde, initialDate, numberOfWeek
 
       // Update the gardeArrays for the found dynamic input
       if (dynamicInput) {
-        if (weekendDays.includes(currentDayName)){
+        if (weekendDays.includes(currentDayName) && isWeekendSeparated){
           if (isOneIsTwoWE){
             if (currentDayName === "dimanche") {
               dynamicInput.gardeArrayWE[j]++;
