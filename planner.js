@@ -55,6 +55,11 @@ function addInputGroup() {
   percentageCell.appendChild(percentageInput);
   newRow.appendChild(percentageCell);
 
+  // GardeArray Output
+  const gardeArrayCell = document.createElement('td');
+  gardeArrayCell.classList.add('gardeArray', 'form-control');
+  newRow.appendChild(gardeArrayCell);
+
   // Remove button
   const removeCell = document.createElement('td');
   const removeButton = document.createElement('button');
@@ -176,6 +181,13 @@ function generatePlanner() {
   // Générez les données du planning
   const calendarData = generatePlannerData(dynamicInputs, nbDeGarde, initialDate, numberOfWeeksInput, isOneIsTwoWE);
   console.log(calendarData);
+
+  // Refresh GardeArray Output Cells
+  const gardeArrayCells = document.querySelectorAll('.gardeArray');
+  gardeArrayCells.forEach((cell, index) => {
+    const gardeArrayValues = dynamicInputs[index].gardeArray.join(', ');
+    cell.textContent = gardeArrayValues;
+  });
 
   // Affichez le tableau du planning en mode pas debug
   if (!DEBUG_MODE) {displayPlannerTable(nbDeGarde, calendarData);}  
