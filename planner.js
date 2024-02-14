@@ -2,6 +2,35 @@
 const dateOpt = {weekday: 'long', month: 'long', day: 'numeric'};
 const weekendDays = ['samedi','dimanche']
 
+// Fonction pour déterminer si le jour est un jour férié
+function isBankHoliday(currentDate) {
+  const day = currentDate.getDate();
+  const month = currentDate.getMonth();
+  let isBankHoliday = false;
+
+  // List of fixed jours fériés in France
+  const holidays = [
+    { day: 1, month: 0 },  // Nouvel an - January 1
+    { day: 1, month: 4 },  // Fête du Travail - May 1
+    { day: 8, month: 4 },  // Victoire 1945 - May 8
+    { day: 14, month: 6 }, // Fête Nationale - July 14
+    { day: 15, month: 7 }, // Assomption - August 15
+    { day: 1, month: 10 }, // Toussaint - November 1
+    { day: 11, month: 10 },// Armistice 1918 - November 11
+    { day: 25, month: 11 } // Noël - December 25
+  ];
+
+  // Check if the current date is a jour férié
+  for (const holiday of holidays) {
+    if (day === holiday.day && month === holiday.month) {
+      isBankHoliday = true;
+      break;
+    }
+  }
+
+  return isBankHoliday;
+}
+
 // Add a new input group and update the table dynamically
 function addInputGroup() {
   const tableBody = document.getElementById('dataTableBody');
@@ -55,10 +84,20 @@ function addInputGroup() {
   percentageCell.appendChild(percentageInput);
   newRow.appendChild(percentageCell);
 
-  // GardeArray Output
+  // gardeArray Output
   const gardeArrayCell = document.createElement('td');
   gardeArrayCell.classList.add('gardeArray', 'form-control');
   newRow.appendChild(gardeArrayCell);
+
+  // gardeArrayWE Output
+  const gardeArrayWECell = document.createElement('td');
+  gardeArrayWECell.classList.add('gardeArrayWE', 'form-control');
+  newRow.appendChild(gardeArrayWECell);
+
+  // gardeArrayJF Output
+  const gardeArrayJFCell = document.createElement('td');
+  gardeArrayJFCell.classList.add('gardeArrayJF', 'form-control');
+  newRow.appendChild(gardeArrayJFCell);
 
   // Remove button
   const removeCell = document.createElement('td');
@@ -166,10 +205,12 @@ function generatePlanner() {
         }
       }
 
-      // Créé un array basé sur le nbDeGarde
+      // Créé des array basé sur le nbDeGarde
       const gardeArray = Array.from({ length: nbDeGarde }, () => 0);
+      const gardeArrayWE = Array.from({ length: nbDeGarde }, () => 0);
+      const gardeArrayJF = Array.from({ length: nbDeGarde }, () => 0);
 
-      dynamicInputs.push({ name, repos, vacation: vacationArray, percentage, gardeArray});
+      dynamicInputs.push({ name, repos, vacation: vacationArray, percentage, gardeArray, gardeArrayWE, gardeArrayJF});
     });
 
     console.log(dynamicInputs);
@@ -182,22 +223,31 @@ function generatePlanner() {
   const calendarData = generatePlannerData(dynamicInputs, nbDeGarde, initialDate, numberOfWeeksInput, isOneIsTwoWE);
   console.log(calendarData);
 
-  // Refresh GardeArray Output Cells
+  // Refresh Garde Output Cells
   const gardeArrayCells = document.querySelectorAll('.gardeArray');
   gardeArrayCells.forEach((cell, index) => {
-    const gardeArrayValues = dynamicInputs[index].gardeArray.join(', ');
+    const gardeArrayValues = "Sem: " + dynamicInputs[index].gardeArray.join(', ');
     cell.textContent = gardeArrayValues;
+  });
+  const gardeArrayWECells = document.querySelectorAll('.gardeArrayWE');
+  gardeArrayWECells.forEach((cell, index) => {
+    const gardeArrayWEValues = "WE: " + dynamicInputs[index].gardeArrayWE.join(', ');
+    cell.textContent = gardeArrayWEValues;
+  });
+  const gardeArrayJFCells = document.querySelectorAll('.gardeArrayJF');
+  gardeArrayJFCells.forEach((cell, index) => {
+    const gardeArrayJFValues = "Férié: " + dynamicInputs[index].gardeArrayJF.join(', ');
+    cell.textContent = gardeArrayJFValues;
   });
 
   // Affichez le tableau du planning en mode pas debug
   if (!DEBUG_MODE) {displayPlannerTable(nbDeGarde, calendarData);}  
 }
 
-function nameFulfiller(currNbDeGarde, currentDate, calendarData, dynamicInputs, nameUsed, isOneIsTwoWE) {
+function nameFulfiller(currNbDeGarde, currentDate, currentDayName, calendarData, dynamicInputs, nameUsed, isOneIsTwoWE) {
   let nameResult = "";
   let nameList = [];
   const currentDateStr = currentDate.toLocaleDateString('fr-FR', dateOpt);
-  const currentDayName = currentDate.toLocaleDateString('fr-FR', { weekday: 'long' })
 
   // Get the names from dynamicInputs
   for (let i = 0; i < dynamicInputs.length; i++) {
@@ -235,6 +285,7 @@ function generatePlannerData(dynamicInputs, nbDeGarde, initialDate, numberOfWeek
 
   for (let i = 0; i < 7 * numberOfWeeks; i++) {
     const currentDate = new Date(initialDate.getTime() + i * 24 * 60 * 60 * 1000);
+    const currentDayName = currentDate.toLocaleDateString('fr-FR', { weekday: 'long' })
     const nameUsed = [];
 
     // Create an object to store the calendar data for the current week
@@ -254,15 +305,27 @@ function generatePlannerData(dynamicInputs, nbDeGarde, initialDate, numberOfWeek
 
     // Add garde properties dynamically based on the names array
     for (let j = 0; j < nbDeGarde; j++) {
-      dayData[`garde${j + 1}`] = nameFulfiller(j + 1, currentDate, calendarData, dynamicInputs, nameUsed, isOneIsTwoWE);
+      dayData[`garde${j + 1}`] = nameFulfiller(j + 1, currentDate, currentDayName, calendarData, dynamicInputs, nameUsed, isOneIsTwoWE);
       nameUsed.push(dayData[`garde${j + 1}`]);
 
       // Find the dynamic input for the current name
       const dynamicInput = dynamicInputs.find(input => input.name === dayData[`garde${j + 1}`]);
 
-      // Update the gardeArray for the found dynamic input
+      // Update the gardeArrays for the found dynamic input
       if (dynamicInput) {
-        dynamicInput.gardeArray[j]++;
+        if (weekendDays.includes(currentDayName)){
+          if (isOneIsTwoWE){
+            if (currentDayName === "dimanche") {
+              dynamicInput.gardeArrayWE[j]++;
+            }
+          } else {
+            dynamicInput.gardeArrayWE[j]++;
+          }
+        } else if (isBankHoliday(currentDate)) {
+          dynamicInput.gardeArrayJF[j]++;
+        } else {
+          dynamicInput.gardeArray[j]++;
+        }
       }
     }
 
