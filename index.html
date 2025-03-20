@@ -16,8 +16,12 @@
         <table class="table table-bordered">
           <thead>
             <tr>
-              <th>Nom</th>
-              <th>Jour de Repos</th>
+              <th>Nom*</th>
+              <th>Jour de Repos
+                <small class="text-muted" data-toggle="tooltip" data-placement="top" title="Si aucun jour n'est sélectionné, les jours de repos seront répartis automatiquement et équitablement chaque semaine.">
+                  [?]
+                </small>
+              </th>
               <th>Congés
                 <small class="text-muted" data-toggle="tooltip" data-placement="top" title="Chaque jour de congé doit être séparé par une virgule au format AAAA-MM-JJ.">
                   [?]
@@ -28,7 +32,6 @@
                   [?]
                 </small>
               </th>
-              <th>Répartition des Gardes (Semaine, WE, Jours férié)</th>
               <th>Suppr</th>
             </tr>
           </thead>
@@ -54,18 +57,6 @@
       <div class="form-group">
         <label for="numberOfWeeks">Saisissez le nombre de semaines :</label>
         <input type="number" class="form-control" id="numberOfWeeks" required>
-      </div>
-      <div class="form-group">
-        <label for="oneIsTwoWE">Le premier le vendredi est second le weekend et vice versa.</label>
-        <input type="checkbox" id="oneIsTwoWE" name="oneIsTwoWE">
-      </div>
-      <div class="form-group">
-        <label for="weekendSeparated">Les week-ends sont comptés séparément.</label>
-        <input type="checkbox" id="weekendSeparated" name="weekendSeparated">
-      </div>
-      <div class="form-group">
-        <label for="jourFerieSeparated">Les jours fériés sont comptés séparément.</label>
-        <input type="checkbox" id="jourFerieSeparated" name="jourFerieSeparated">
       </div>
       
       <button type="button" class="btn btn-primary" onclick="generatePlanner()">Générer le Planning</button>
