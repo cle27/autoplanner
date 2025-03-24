@@ -142,21 +142,6 @@ function generatePlanner() {
   numberOfWeeksInput = document.getElementById('numberOfWeeks').value;
 
   // Check input
-  // Not empty
-  if (!initialDateInput) {
-    alert('Veuillez remplir la date initiale du calendrier (un lundi).');
-    return;
-  }
-
-  // nbDeGarde and numberOfWeeks are numbers
-  if (!nbDeGarde) {
-    alert('Le nombre de personnes de garde doit être un nombre valide.');
-    return;
-  }
-  if (!numberOfWeeksInput) {
-    alert('Le nombre de semaines doit être un nombre valide.');
-    return;
-  }
 
   // Get les valeurs des champs dynamiques
   const inputGroups = document.querySelectorAll('.dynamic-input-group');
@@ -196,7 +181,7 @@ function generatePlanner() {
     // Initialiser le compteur de repos par jour (pour auto repos)
     const reposCounts = { lundi: 0, mardi: 0, mercredi: 0, jeudi: 0, vendredi: 0 };
 
-    // Créer un nouvel objet pour chaque personne pour éviter les références partagées
+    // Créer un nouvel objet pour chaque personne pour éviter les références partagées (... permet de créer une copie)
     dynamicInputs.push({ 
       name, 
       repos, 
@@ -209,8 +194,23 @@ function generatePlanner() {
     });
   });
 
-  console.log(dynamicInputs);
+  // Check les champs des parametres si non vides
+  if (!initialDateInput) {
+    alert('Veuillez remplir la date initiale du calendrier (un lundi).');
+    return;
+  }
+
+  // nbDeGarde and numberOfWeeks are numbers
+  if (!nbDeGarde) {
+    alert('Le nombre de personnes de garde doit être un nombre valide.');
+    return;
+  }
+  if (!numberOfWeeksInput) {
+    alert('Le nombre de semaines doit être un nombre valide.');
+    return;
+  }
   
+  console.log(dynamicInputs);
   
   // Rendre dynamicInputs accessible globalement pour le tableau récapitulatif
   window.globalDynamicInputs = dynamicInputs;
@@ -252,17 +252,43 @@ function nameFulfiller(currNbDeGarde, currentDate, currentDayName, calendarData,
 
     // Si c'est le samedi ou le dimanche
     if (currentDayName === 'samedi' || currentDayName === 'dimanche') {
-      // Si on est en position 1, on prend la personne qui était en position 2 le vendredi
-      if (currNbDeGarde === 1) {
-        nameResult = fridayData.garde2;
-      }
-      // Si on est en position 2, on prend la personne qui était en position 1 le vendredi
-      else if (currNbDeGarde === 2) {
-        nameResult = fridayData.garde1;
-      }
-      // Pour les positions 3 et plus, on garde la même personne que le vendredi
-      else {
-        nameResult = fridayData[`garde${currNbDeGarde}`];
+      // Filtrer les personnes disponibles (non utilisées et non en congés)
+      let availablePeople = dynamicInputs.filter(person => 
+        !nameUsed.includes(person.name) && 
+        !person.vacation.includes(currentDate.toISOString().split('T')[0])
+      );
+
+      // Trier les personnes disponibles selon plusieurs critères
+      availablePeople.sort((a, b) => {
+        // 1. Priorité aux personnes qui n'ont pas encore été dans cette position ce weekend
+        const hasBeenInPositionA = a.gardeArrayWE[currNbDeGarde - 1] > 0;
+        const hasBeenInPositionB = b.gardeArrayWE[currNbDeGarde - 1] > 0;
+        
+        if (!hasBeenInPositionA && hasBeenInPositionB) return -1;
+        if (hasBeenInPositionA && !hasBeenInPositionB) return 1;
+
+        // 2. Éviter les gardes successives
+        const lastDay = calendarData[calendarData.length - 1];
+        const wasInPositionYesterdayA = lastDay && lastDay[`garde${currNbDeGarde}`] === a.name;
+        const wasInPositionYesterdayB = lastDay && lastDay[`garde${currNbDeGarde}`] === b.name;
+        
+        if (wasInPositionYesterdayA && !wasInPositionYesterdayB) return 1;
+        if (!wasInPositionYesterdayA && wasInPositionYesterdayB) return -1;
+
+        // 3. Équilibrer le nombre total de gardes de weekend
+        const countA = a.gardeArrayWE.reduce((sum, count) => sum + count, 0) / (a.percentage / 100);
+        const countB = b.gardeArrayWE.reduce((sum, count) => sum + count, 0) / (b.percentage / 100);
+        
+        if (Math.abs(countA - countB) < 0.001) {
+          return Math.random() - 0.5;
+        }
+        
+        return countA - countB;
+      });
+
+      // Sélectionner la première personne disponible
+      if (availablePeople.length > 0) {
+        nameResult = availablePeople[0].name;
       }
     } else {
       // Pour le vendredi, on utilise la logique normale avec les règles de priorité
