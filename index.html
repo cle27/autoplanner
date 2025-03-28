@@ -46,17 +46,25 @@
     
     <!-- Formulaire pour saisir les noms, les semaines de congé, la date initiale et le nombre de semaines -->
     <form id="plannerForm">
-      <div class="form-group">
-        <label for="nbDeGarde">Combien de personnes sont de garde en même temps?</label>
-        <input type="number" class="form-control" id="nbDeGarde" required>
-      </div>
-      <div class="form-group">
-        <label for="initialDate">Saisissez la date initiale : (doit être un lundi)</label>
-        <input type="date" class="form-control" id="initialDate" required>
-      </div>
-      <div class="form-group">
-        <label for="numberOfWeeks">Saisissez le nombre de semaines :</label>
-        <input type="number" class="form-control" id="numberOfWeeks" required>
+      <div class="row">
+        <div class="col-md-4">
+          <div class="form-group">
+            <label for="nbDeGarde">Personnes de garde en même temps :</label>
+            <input type="number" class="form-control" id="nbDeGarde" value="3" required>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-group">
+            <label for="initialDate">Date initiale : (doit être un lundi)</label>
+            <input type="date" class="form-control" id="initialDate" value="2025-04-28" required>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-group">
+            <label for="numberOfWeeks">Nombre de semaines :</label>
+            <input type="number" class="form-control" id="numberOfWeeks" value="6" required>
+          </div>
+        </div>
       </div>
       
       <button type="button" class="btn btn-primary" onclick="generatePlanner()">Générer le Planning</button>
