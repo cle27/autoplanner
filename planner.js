@@ -384,65 +384,125 @@ function generatePlannerData(dynamicInputs, nbDeGarde, initialDate, numberOfWeek
   // Compteur pour suivre le nombre de personnes avec repos auto
   const autoReposCount = dynamicInputs.filter(input => !input.repos).length;
 
+  // First, identify all Sundays and assign guards
   for (let i = 0; i < 7 * numberOfWeeks; i++) {
     const currentDate = new Date(initialDate.getTime() + i * 24 * 60 * 60 * 1000);
     const currentDayName = currentDate.toLocaleDateString('fr-FR', { weekday: 'long' });
-    const nameUsed = [];
-    const dayOfWeek = currentDayName.toLowerCase();
+    
+    if (currentDayName === 'dimanche') {
+      const nameUsed = [];
+      const dayData = {
+        date: currentDate.toLocaleDateString('fr-FR', dateOpt),
+        repos: []
+      };
 
-    // Create an object to store the calendar data for the current week
+      // Handle fixed repos and vacations for this day
+      dynamicInputs.forEach(input => {
+        if ((input.repos && currentDayName.toLowerCase() === input.repos.toLowerCase()) ||
+            (input.vacation.includes(currentDate.toISOString().split('T')[0]))) {
+          nameUsed.push(input.name);
+          dayData.repos.push(input.name);
+        }
+      });
+
+      // Assign guards for Sunday based on gardeArrayWE
+      for (let j = 0; j < nbDeGarde; j++) {
+        let availablePeople = dynamicInputs.filter(person => !nameUsed.includes(person.name));
+        
+        if (availablePeople.length > 0) {
+          // Sort by gardeArrayWE count
+          availablePeople.sort((a, b) => {
+            const countA = a.gardeArrayWE[j] / (a.percentage / 100);
+            const countB = b.gardeArrayWE[j] / (b.percentage / 100);
+            
+            if (Math.abs(countA - countB) < 0.001) {
+              return Math.random() - 0.5;
+            }
+            return countA - countB;
+          });
+          
+          dayData[`garde${j + 1}`] = availablePeople[0].name;
+          nameUsed.push(dayData[`garde${j + 1}`]);
+          
+          // Update gardeArrayWE
+          const dynamicInput = dynamicInputs.find(input => input.name === dayData[`garde${j + 1}`]);
+          if (dynamicInput) {
+            dynamicInput.gardeArrayWE[j]++;
+          }
+        }
+      }
+
+      // Store the Sunday data
+      calendarData[i] = dayData;
+
+      // Automatically assign the same guards to Saturday
+      const saturdayIndex = i - 1;
+      const saturdayDate = new Date(initialDate.getTime() + saturdayIndex * 24 * 60 * 60 * 1000);
+      const saturdayData = {
+        date: saturdayDate.toLocaleDateString('fr-FR', dateOpt),
+        repos: [...dayData.repos]
+      };
+
+      // Copy guard assignments from Sunday to Saturday
+      for (let j = 0; j < nbDeGarde; j++) {
+        saturdayData[`garde${j + 1}`] = dayData[`garde${j + 1}`];
+        const dynamicInput = dynamicInputs.find(input => input.name === saturdayData[`garde${j + 1}`]);
+        if (dynamicInput) {
+          dynamicInput.gardeArrayWE[j]++;
+        }
+      }
+
+      calendarData[saturdayIndex] = saturdayData;
+    }
+  }
+
+  // Now handle the remaining days (Monday-Friday)
+  for (let i = 0; i < 7 * numberOfWeeks; i++) {
+    const currentDate = new Date(initialDate.getTime() + i * 24 * 60 * 60 * 1000);
+    const currentDayName = currentDate.toLocaleDateString('fr-FR', { weekday: 'long' });
+    
+    // Skip if we already processed this day (Saturday or Sunday)
+    if (calendarData[i]) continue;
+
+    const nameUsed = [];
     const dayData = {
       date: currentDate.toLocaleDateString('fr-FR', dateOpt),
       repos: []
     };
 
-    // First, assign fixed repos days
+    // Handle fixed repos and vacations
     dynamicInputs.forEach(input => {
-      // Si un jour de repos fixe est défini ou si c'est un jour de congé
       if ((input.repos && currentDayName.toLowerCase() === input.repos.toLowerCase()) ||
           (input.vacation.includes(currentDate.toISOString().split('T')[0]))) {
         nameUsed.push(input.name);
         dayData.repos.push(input.name);
       }
     });
-    
-    // Ensuite, attribuer les repos automatiques si c'est le début d'une semaine (lundi)
-    if (dayOfWeek === 'lundi' && autoReposCount > 0) {
-      // Répartir les repos pour la semaine
+
+    // Handle auto repos if it's Monday
+    if (currentDayName.toLowerCase() === 'lundi' && autoReposCount > 0) {
       assignAutoReposDays(dynamicInputs, i / 7, reposDaysCount);
     }
-    
-    // Vérifier si quelqu'un a un repos auto aujourd'hui
+
+    // Check for auto repos
     dynamicInputs.forEach(input => {
-      // Si la personne n'a pas de jour de repos fixe et n'est pas déjà en repos
       if (!input.repos && !nameUsed.includes(input.name) && !input.vacation.includes(currentDate.toISOString().split('T')[0])) {
-        // Si cette personne a un repos auto pour ce jour de la semaine
-        if (input.autoReposDays && input.autoReposDays.includes(dayOfWeek)) {
+        if (input.autoReposDays && input.autoReposDays.includes(currentDayName.toLowerCase())) {
           nameUsed.push(input.name);
           dayData.repos.push(input.name);
         }
       }
     });
 
-    // Add garde properties dynamically based on the names array
+    // Assign guards for the remaining days
     for (let j = 0; j < nbDeGarde; j++) {
       dayData[`garde${j + 1}`] = nameFulfiller(j + 1, currentDate, currentDayName, calendarData, dynamicInputs, nameUsed, isOneIsTwoWE, isJourFerieSeparated, isWeekendSeparated);
       nameUsed.push(dayData[`garde${j + 1}`]);
 
-      // Find the dynamic input for the current name
+      // Update the appropriate gardeArray
       const dynamicInput = dynamicInputs.find(input => input.name === dayData[`garde${j + 1}`]);
-
-      // Update the gardeArrays for the found dynamic input
       if (dynamicInput) {
-        if (weekendDays.includes(currentDayName) && isWeekendSeparated){
-          if (isOneIsTwoWE){
-            if (currentDayName === "dimanche") {
-              dynamicInput.gardeArrayWE[j]++;
-            }
-          } else {
-            dynamicInput.gardeArrayWE[j]++;
-          }
-        } else if (isBankHoliday(currentDate) && isJourFerieSeparated) {
+        if (isBankHoliday(currentDate) && isJourFerieSeparated) {
           dynamicInput.gardeArrayJF[j]++;
         } else {
           dynamicInput.gardeArray[j]++;
@@ -450,10 +510,7 @@ function generatePlannerData(dynamicInputs, nbDeGarde, initialDate, numberOfWeek
       }
     }
 
-    // Push the dayData object into the calendarData array
-    calendarData.push(dayData);
-
-    if (DEBUG_MODE) {console.log(calendarData);}
+    calendarData[i] = dayData;
   }
 
   return calendarData;
