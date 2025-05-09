@@ -2,6 +2,8 @@
 
 AutoPlanner is a web-based application designed to automatically generate and manage work schedules, specifically tailored for managing guard rotations and time off. It's particularly useful for teams that need to maintain continuous coverage while respecting various constraints like vacations, fixed rest days, and work percentages.
 
+You can access a live version here : https://cle27.github.io/autoplanner/
+
 ## Features
 
 - **Dynamic Schedule Generation**: Automatically generates schedules based on multiple parameters
