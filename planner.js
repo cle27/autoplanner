@@ -448,7 +448,7 @@ function generatePlannerData(dynamicInputs, nbDeGarde, initialDate, numberOfWeek
         saturdayData[`garde${j + 1}`] = dayData[`garde${j + 1}`];
         const dynamicInput = dynamicInputs.find(input => input.name === saturdayData[`garde${j + 1}`]);
         if (dynamicInput) {
-          dynamicInput.gardeArrayWE[j]++;
+          //dynamicInput.gardeArrayWE[j]++;
         }
       }
 
